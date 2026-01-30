@@ -116,14 +116,19 @@ npm install
 ```
 
 ### Step 3: Configure Environment
-Create a `.env` file in the root directory:
+Copy the example environment file and add your API key:
+
+```bash
+cp .env.example .env
+```
+
+Then edit the `.env` file and replace with your actual Gemini API key:
 
 ```env
-GEMINI_API_KEY="add your gemini api"
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_PROJECT_ID=your_project_id
-# Add other Firebase config as needed
+GEMINI_API_KEY="your_actual_gemini_api_key_here"
 ```
+
+> **Get your API key**: Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to create a free Gemini API key.
 
 ### Step 4: Start Development Server
 ```bash
