@@ -59,7 +59,7 @@ export const createUserProfile = async (
 
     // Role determination: ONLY based on predefined admin emails
     // In production, this should be done via Cloud Functions or Admin SDK
-    const ADMIN_EMAILS = ['mayank.bonfire@gmail.com'];
+    const ADMIN_EMAILS = ['admin@yourdomain.com']; // Add your admin emails here
     const isAdminEmail = data.email && ADMIN_EMAILS.includes(data.email.toLowerCase());
     const role: UserRole = isAdminEmail ? 'ADMIN' : 'CITIZEN';
 
