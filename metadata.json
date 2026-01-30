@@ -1,0 +1,9 @@
+{
+  "name": "Udaipur Smart City",
+  "description": "Official Smart City App for Udaipur. Report issues visually, track civic status, and access emergency services.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone",
+    "camera"
+  ]
+}

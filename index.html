@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Civix — Powering Smarter Cities</title>
+  <meta name="description"
+    content="AI-powered civic engagement platform for smart cities. Report issues, track resolutions, and make your city better." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              800: '#1E40AF',
+              900: '#1E3A8A',
+            },
+            accent: {
+              50: '#F0FDFA',
+              100: '#CCFBF1',
+              400: '#2DD4BF',
+              500: '#14B8A6',
+              600: '#0D9488',
+            },
+            surface: {
+              light: '#FFFFFF',
+              dark: '#1E293B',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            '2xl': '16px',
+            '3xl': '24px',
+            '4xl': '32px',
+          },
+          boxShadow: {
+            'premium': '0 4px 20px -2px rgba(0, 0, 0, 0.1), 0 2px 8px -2px rgba(0, 0, 0, 0.06)',
+            'premium-lg': '0 8px 40px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+            'glow-primary': '0 0 20px rgba(37, 99, 235, 0.35)',
+            'glow-success': '0 0 20px rgba(22, 163, 74, 0.35)',
+            'glow-critical': '0 0 20px rgba(220, 38, 38, 0.35)',
+            'inner-glow': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
+          },
+          animation: {
+            'fade-in-down': 'fadeInDown 0.5s ease-out',
+            'fade-in-up': 'fadeInUp 0.4s ease-out forwards',
+            'pulse-slow': 'pulse 3s infinite',
+            'shimmer': 'shimmer 2s infinite linear',
+            'pulse-ring': 'pulseRing 1.5s ease-out infinite',
+            'slide-up': 'slideUp 0.3s ease-out',
+            'counter-up': 'counterUp 0.6s ease-out',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'float': 'float 3s ease-in-out infinite',
+            'scan': 'scan 2s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeInDown: {
+              '0%': { opacity: '0', transform: 'translateY(-10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(16px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            },
+            pulseRing: {
+              '0%': { transform: 'scale(0.95)', opacity: '1' },
+              '100%': { transform: 'scale(1.4)', opacity: '0' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(100%)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            counterUp: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 20px rgba(37, 99, 235, 0.2)' },
+              '100%': { boxShadow: '0 0 30px rgba(37, 99, 235, 0.4)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-6px)' },
+            },
+            scan: {
+              '0%, 100%': { transform: 'translateY(-100%)' },
+              '50%': { transform: 'translateY(100%)' },
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Leaflet.js for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <!-- Fonts - Inter + Fallbacks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ========================================
+       CIVIX DESIGN SYSTEM v2.0
+       Flagship Smart City UI
+       ======================================== */
+
+    /* --- CSS VARIABLES (DESIGN TOKENS) --- */
+    :root {
+      /* Primary Palette */
+      --color-primary: #2563EB;
+      --color-primary-light: #DBEAFE;
+      --color-primary-dark: #1D4ED8;
+
+      /* Accent (Teal) */
+      --color-accent: #0D9488;
+      --color-accent-light: #CCFBF1;
+
+      /* Semantic Colors */
+      --color-success: #16A34A;
+      --color-success-light: #DCFCE7;
+      --color-warning: #F59E0B;
+      --color-warning-light: #FEF3C7;
+      --color-critical: #DC2626;
+      --color-critical-light: #FEE2E2;
+
+      /* Surfaces */
+      --bg-primary: #F8FAFC;
+      --bg-secondary: #FFFFFF;
+      --bg-tertiary: #F1F5F9;
+
+      /* Text */
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --text-tertiary: #94A3B8;
+
+      /* Borders */
+      --border-light: #E2E8F0;
+      --border-medium: #CBD5E1;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-glow: 0 0 24px rgba(37, 99, 235, 0.25);
+
+      /* Radius */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      /* Transitions */
+      --transition-fast: 150ms ease;
+      --transition-base: 250ms ease;
+      --transition-slow: 400ms ease-out;
+    }
+
+    /* --- DARK MODE TOKENS --- */
+    .dark {
+      --color-primary: #3B82F6;
+      --color-primary-light: #1E3A8A;
+      --color-primary-dark: #60A5FA;
+
+      --color-accent: #14B8A6;
+      --color-accent-light: #134E4A;
+
+      --color-success: #22C55E;
+      --color-success-light: #14532D;
+      --color-warning: #FBBF24;
+      --color-warning-light: #78350F;
+      --color-critical: #EF4444;
+      --color-critical-light: #7F1D1D;
+
+      --bg-primary: #0F172A;
+      --bg-secondary: #1E293B;
+      --bg-tertiary: #334155;
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-tertiary: #64748B;
+
+      --border-light: #334155;
+      --border-medium: #475569;
+
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* --- BASE STYLES --- */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', 'Plus Jakarta Sans', 'Noto Sans Devanagari', system-ui, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* --- SCROLLBAR STYLES --- */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Custom scrollbar for content areas */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--border-medium);
+      border-radius: var(--radius-full);
+    }
+
+    /* --- SAFE AREA --- */
+    .safe-area-bottom {
+      padding-bottom: max(env(safe-area-inset-bottom), 16px);
+    }
+
+    .safe-area-top {
+      padding-top: max(env(safe-area-inset-top), 16px);
+    }
+
+    /* --- GLASSMORPHISM --- */
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .glass {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .dark .glass-strong {
+      background: rgba(30, 41, 59, 0.85);
+    }
+
+    /* --- PREMIUM CARD STYLES --- */
+    .card-premium {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-md);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .card-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-premium:active {
+      transform: translateY(0);
+    }
+
+    /* --- BUTTON STYLES --- */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+      color: white;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      transition: all var(--transition-base);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary:hover {
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      transition: all var(--transition-base);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+
+    /* --- CHIP/BADGE STYLES --- */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .chip-critical {
+      background: var(--color-critical-light);
+      color: var(--color-critical);
+    }
+
+    .chip-warning {
+      background: var(--color-warning-light);
+      color: #92400E;
+    }
+
+    .chip-success {
+      background: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .chip-primary {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+
+    .chip-accent {
+      background: var(--color-accent-light);
+      color: var(--color-accent);
+    }
+
+    /* --- SHIMMER LOADING --- */
+    .shimmer {
+      background: linear-gradient(90deg,
+          var(--bg-tertiary) 0%,
+          var(--bg-secondary) 50%,
+          var(--bg-tertiary) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite linear;
+    }
+
+    /* --- PULSE RING (for critical markers) --- */
+    .pulse-ring {
+      position: relative;
+    }
+
+    .pulse-ring::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid var(--color-critical);
+      animation: pulseRing 1.5s ease-out infinite;
+    }
+
+    /* --- PROGRESS RING --- */
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.5s ease-out;
+    }
+
+    /* --- ANIMATIONS --- */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    @keyframes pulseRing {
+      0% {
+        transform: scale(0.95);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    @keyframes scan {
+
+      0%,
+      100% {
+        transform: translateY(-100%);
+      }
+
+      50% {
+        transform: translateY(100%);
+      }
+    }
+
+    .animate-fade-in-up {
+      animation: fadeInUp 0.4s ease-out forwards;
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+
+    /* --- STAGGER ANIMATIONS --- */
+    .stagger-1 {
+      animation-delay: 0.05s;
+    }
+
+    .stagger-2 {
+      animation-delay: 0.1s;
+    }
+
+    .stagger-3 {
+      animation-delay: 0.15s;
+    }
+
+    .stagger-4 {
+      animation-delay: 0.2s;
+    }
+
+    .stagger-5 {
+      animation-delay: 0.25s;
+    }
+
+    /* --- LEAFLET MAP OVERRIDES --- */
+    .leaflet-container {
+      border-radius: var(--radius-lg);
+      font-family: inherit;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .leaflet-popup-content {
+      margin: 12px 14px;
+      font-family: inherit;
+    }
+
+    /* --- UTILITY: Gradient Text --- */
+    .text-gradient {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* --- UTILITY: Gradient Background --- */
+    .bg-gradient-primary {
+      background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #1E40AF 100%);
+    }
+
+    .bg-gradient-hero {
+      background: linear-gradient(135deg, #2563EB 0%, #0D9488 100%);
+    }
+
+    .bg-gradient-dark {
+      background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+    }
+
+    /* --- FOCUS STATES (Accessibility) --- */
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* --- NUMBER EMPHASIS --- */
+    .num-display {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .num-display-lg {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .num-display-xl {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+  </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

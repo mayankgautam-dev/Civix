@@ -1,0 +1,119 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Get user's role from their user document
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'ADMIN';
+    }
+    
+    // Check if user is citizen
+    function isCitizen() {
+      return isAuthenticated() && getUserRole() == 'CITIZEN';
+    }
+    
+    // Check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ==================== USERS COLLECTION ====================
+    match /users/{userId} {
+      // Users can read their own profile
+      // Admins can read all profiles
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can only create their own profile
+      allow create: if isOwner(userId);
+      
+      // Users can update their own profile EXCEPT role field
+      // Role can only be updated by admins
+      allow update: if isOwner(userId) && (
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
+      ) || isAdmin();
+      
+      // Only admins can delete user profiles
+      allow delete: if isAdmin();
+    }
+    
+    // ==================== REPORTS COLLECTION ====================
+    match /reports/{reportId} {
+      // Citizens can read their own reports
+      // Admins can read ALL reports
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      
+      // Only citizens can create reports
+      // Report must belong to the authenticated user
+      // Status must be SUBMITTED on creation
+      allow create: if isCitizen() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'SUBMITTED';
+      
+      // Citizens cannot update reports after submission
+      // Only admins can update reports (status changes)
+      allow update: if isAdmin();
+      
+      // Only admins can delete reports
+      allow delete: if isAdmin();
+    }
+    
+    // ==================== NOTIFICATIONS COLLECTION ====================
+    match /notifications/{notificationId} {
+      // Users can read their own notifications or broadcasts
+      // Admins can read all notifications
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.userId == 'BROADCAST' ||
+        resource.data.targetRole == 'ALL' ||
+        (resource.data.targetRole == 'CITIZEN' && isCitizen()) ||
+        (resource.data.targetRole == 'ADMIN' && isAdmin()) ||
+        isAdmin()
+      );
+      
+      // Only authenticated users can create notifications
+      allow create: if isAuthenticated();
+      
+      // Users can mark their own notifications as read
+      // Admins can update any notification
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      // Users can delete their own notifications
+      // Admins can delete any notification
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+    
+    // ==================== AUDIT LOGS COLLECTION ====================
+    match /logs/{logId} {
+      // Only admins can read logs
+      allow read: if isAdmin();
+      
+      // Any authenticated user can create logs (for error tracking)
+      allow create: if isAuthenticated();
+      
+      // No updates or deletes - logs are immutable
+      allow update, delete: if false;
+    }
+  }
+}
