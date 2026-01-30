@@ -119,7 +119,7 @@ npm install
 Create a `.env` file in the root directory:
 
 ```env
-VITE_GEMINI_API_KEY=your_google_gemini_api_key_here
+GEMINI_API_KEY="add your gemini api"
 VITE_FIREBASE_API_KEY=your_firebase_api_key
 VITE_FIREBASE_PROJECT_ID=your_project_id
 # Add other Firebase config as needed
